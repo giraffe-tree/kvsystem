@@ -37,15 +37,15 @@ public class Client {
                 @Override
                 protected void initChannel(NioSocketChannel ch) throws Exception {
                     ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
                     pipeline.addLast(new BasicLengthFrameDecoder());
                     pipeline.addLast(new BasicLengthFrameEncoder());
 
+                    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+
                     pipeline.addLast(new ResponseMessageDecoder());
                     pipeline.addLast(new RequestMessageEncoder());
-
-                    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
                 }
+
             });
 
             ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 9000);

@@ -1,8 +1,10 @@
 package me.giraffetree.kvsystem.common;
 
 import com.alipay.common.tracer.core.generator.TraceIdGenerator;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @NoArgsConstructor
 public class RequestMessage extends Message<Operation> {
 

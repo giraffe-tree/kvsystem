@@ -1,7 +1,10 @@
 package me.giraffetree.kvsystem.network.handler;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 import me.giraffetree.kvsystem.common.Operation;
 import me.giraffetree.kvsystem.common.RequestMessage;
@@ -24,7 +27,7 @@ public class RequestHandler extends SimpleChannelInboundHandler<RequestMessage> 
         responseMessage.setMessageHeader(request.getMessageHeader());
         responseMessage.setMessageBody(result);
 
-        ctx.writeAndFlush(responseMessage);
+        ChannelFuture channelFuture = ctx.writeAndFlush(responseMessage);
     }
 
 }

@@ -20,6 +20,5 @@ public class RequestMessageEncoder extends MessageToMessageEncoder<RequestMessag
         ByteBuf buffer = ctx.alloc().buffer();
         msg.encode(buffer);
         out.add(buffer);
-        log.info("encode request... msg:{}", msg);
     }
 }

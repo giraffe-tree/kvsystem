@@ -9,6 +9,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import me.giraffetree.kvsystem.network.codec.BasicLengthFrameDecoder;
 import me.giraffetree.kvsystem.network.codec.BasicLengthFrameEncoder;
 import me.giraffetree.kvsystem.network.codec.MessageDecoder;
@@ -24,24 +25,25 @@ public class Server {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.channel(NioServerSocketChannel.class);
 
-        NioEventLoopGroup group = new NioEventLoopGroup(4);
+        NioEventLoopGroup boss = new NioEventLoopGroup(0, new DefaultThreadFactory("boss"));
+        NioEventLoopGroup worker = new NioEventLoopGroup(0, new DefaultThreadFactory("worker"));
         try {
-            serverBootstrap.group(group);
+            serverBootstrap.group(boss, worker);
 
             serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
                 protected void initChannel(NioSocketChannel ch) throws Exception {
                     ChannelPipeline pipeline = ch.pipeline();
 
-                    pipeline.addLast(new BasicLengthFrameDecoder());
-                    pipeline.addLast(new BasicLengthFrameEncoder());
+                    pipeline.addLast("frameDecoder", new BasicLengthFrameDecoder());
+                    pipeline.addLast("frameEncoder", new BasicLengthFrameEncoder());
 
-                    pipeline.addLast(new MessageDecoder());
-                    pipeline.addLast(new MessageEncoder());
+                    pipeline.addLast("MessageDecoder", new MessageDecoder());
+                    pipeline.addLast("MessageEncoder", new MessageEncoder());
 
                     // 打印 request 和 response
                     pipeline.addLast(new LoggingHandler(LogLevel.INFO));
-                    pipeline.addLast(new RequestHandler());
+                    pipeline.addLast("RequestHandler", new RequestHandler());
                 }
             });
 
@@ -49,7 +51,7 @@ public class Server {
 
             channelFuture.channel().closeFuture().sync();
         } finally {
-            group.shutdownGracefully();
+            boss.shutdownGracefully();
         }
 
     }
