@@ -16,4 +16,6 @@ public class HelloResponse extends Result {
 
     private String msg;
 
+
+
 }

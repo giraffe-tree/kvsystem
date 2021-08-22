@@ -7,7 +7,10 @@ import io.netty.util.AttributeKey;
  * @date 2021/8/14
  */
 public enum ServerAttr {
-
+    /**
+     * 操作类型
+     */
+    OPERATION_TYPE(AttributeKey.newInstance("OPERATION_TYPE")),
     /**
      * 请求内容
      */

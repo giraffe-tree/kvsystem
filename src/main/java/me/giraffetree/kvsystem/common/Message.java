@@ -40,7 +40,9 @@ public abstract class Message<T extends MessageBody> {
 
     public abstract Class<T> getMessageBodyDecodeClass(String operation);
 
-    public void decode(ByteBuf msg) {
+    public abstract OperationType getOperationType(String operation);
+
+    public OperationType decode(ByteBuf msg) {
         int version = msg.readInt();
         int traceIdLen = msg.readInt();
         String traceId = msg.readBytes(traceIdLen).toString(StandardCharsets.UTF_8);
@@ -48,9 +50,11 @@ public abstract class Message<T extends MessageBody> {
         String operation = msg.readBytes(operationLen).toString(StandardCharsets.UTF_8);
 
         this.messageHeader = new MessageHeader(version, traceId, operation);
-
+        OperationType operationType = getOperationType(operation);
         Class<T> bodyClazz = getMessageBodyDecodeClass(operation);
         this.messageBody = JSON.parseObject(msg.toString(StandardCharsets.UTF_8), bodyClazz);
+
+        return operationType;
     }
 
 }

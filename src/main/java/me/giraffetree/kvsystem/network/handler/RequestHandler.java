@@ -34,4 +34,8 @@ public class RequestHandler extends SimpleChannelInboundHandler<RequestMessage> 
         ctx.writeAndFlush(responseMessage);
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("exceptionCaught - {} {}", cause.getClass().getSimpleName(), cause.getLocalizedMessage());
+    }
 }

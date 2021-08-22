@@ -16,53 +16,75 @@ import me.giraffetree.kvsystem.common.OperationType;
 import me.giraffetree.kvsystem.common.RequestMessage;
 import me.giraffetree.kvsystem.common.request.HelloRequest;
 
-import java.util.concurrent.ExecutionException;
-
 /**
  * @author GiraffeTree
  * @date 2021/8/8
  */
 public class Client {
+    private NioEventLoopGroup group;
+    private ChannelFuture channelFuture;
 
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
+    public static void main(String[] args) {
+        Client client = new Client();
+        try {
+            client.build(9000);
+            RequestMessage requestMessage = new RequestMessage(
+                    OperationType.HELLO, new HelloRequest("Giraffe")
+            );
+            client.call(requestMessage);
+            client.call(requestMessage);
+            client.call(requestMessage);
 
+        } finally {
+            client.close();
+        }
+
+    }
+
+    public void build(int port) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.channel(NioSocketChannel.class);
 
-        NioEventLoopGroup group = new NioEventLoopGroup();
-        try {
-            bootstrap.group(group);
+        group = new NioEventLoopGroup();
 
-            bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
-                @Override
-                protected void initChannel(NioSocketChannel ch) throws Exception {
-                    ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast(new BasicLengthFrameDecoder());
-                    pipeline.addLast(new BasicLengthFrameEncoder());
+        bootstrap.group(group);
 
-                    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+        bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
+            @Override
+            protected void initChannel(NioSocketChannel ch) throws Exception {
+                ChannelPipeline pipeline = ch.pipeline();
+                pipeline.addLast(new BasicLengthFrameDecoder());
+                pipeline.addLast(new BasicLengthFrameEncoder());
 
-                    pipeline.addLast(new ResponseMessageDecoder());
-                    pipeline.addLast(new RequestMessageEncoder());
-                }
-
-            });
-
-            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 9000);
-            channelFuture.sync();
-            int count = 1;
-            for (int i = 0; i < count; i++) {
-                RequestMessage requestMessage = new RequestMessage(
-                        OperationType.HELLO, new HelloRequest("Tony")
-                );
-                channelFuture.channel().writeAndFlush(requestMessage);
+                pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+                pipeline.addLast(new ResponseMessageDecoder());
+                pipeline.addLast(new RequestMessageEncoder());
             }
 
-            channelFuture.channel().closeFuture().sync();
+        });
 
-        } finally {
-            group.shutdownGracefully();
+        channelFuture = bootstrap.connect("127.0.0.1", port);
+        try {
+            channelFuture.sync();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
+
+    public void call(RequestMessage requestMessage) {
+        channelFuture.channel().writeAndFlush(requestMessage);
+        try {
+            channelFuture.sync().await();
+            channelFuture.channel().close();
+            channelFuture.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void close() {
+        group.shutdownGracefully();
+    }
+
 
 }

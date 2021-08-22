@@ -4,8 +4,8 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import lombok.extern.slf4j.Slf4j;
-import me.giraffetree.kvsystem.common.RequestMessage;
-import me.giraffetree.kvsystem.common.ResponseMessage;
+import me.giraffetree.kvsystem.common.Operation;
+import me.giraffetree.kvsystem.common.OperationType;
 import me.giraffetree.kvsystem.common.constant.ServerAttr;
 
 /**
@@ -31,11 +31,19 @@ public class MetricHandler extends ChannelDuplexHandler {
     @Override
     public void flush(ChannelHandlerContext ctx) throws Exception {
         super.flush(ctx);
-        RequestMessage requestMessage = (RequestMessage) ctx.channel().attr(ServerAttr.REQUEST_CONTENT.getKey()).get();
-        ResponseMessage responseMessage = (ResponseMessage) ctx.channel().attr(ServerAttr.RESPONSE_CONTENT.getKey()).get();
+        OperationType operationType = (OperationType) ctx.channel().attr(ServerAttr.OPERATION_TYPE.getKey()).get();
+
+        Class<? extends Operation> requestClass = operationType.getRequest();
+        Object request = ctx.channel().attr(ServerAttr.REQUEST_CONTENT.getKey()).get();
+        Object response = ctx.channel().attr(ServerAttr.RESPONSE_CONTENT.getKey()).get();
 
         log.info("type:{} process time:{}ms request:{} response:{}",
-                requestMessage.getClass().getSimpleName(), System.currentTimeMillis() - startMills,
-                requestMessage, responseMessage);
+                requestClass.getSimpleName(), System.currentTimeMillis() - startMills,
+                request, response);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        super.handlerRemoved(ctx);
     }
 }

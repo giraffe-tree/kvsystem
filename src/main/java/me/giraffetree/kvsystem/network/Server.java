@@ -42,8 +42,6 @@ public class Server {
                     pipeline.addLast("MessageDecoder", new MessageDecoder());
                     pipeline.addLast("MessageEncoder", new MessageEncoder());
 
-                    // 打印 request 和 response
-                    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
                     pipeline.addLast("RequestHandler", new RequestHandler());
                 }
             });

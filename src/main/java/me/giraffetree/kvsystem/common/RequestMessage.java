@@ -10,7 +10,12 @@ public class RequestMessage extends Message<Operation> {
 
     @Override
     public Class getMessageBodyDecodeClass(String operation) {
-        return OperationType.valueOf(operation).getRequest();
+        return getOperationType(operation).getRequest();
+    }
+
+    @Override
+    public OperationType getOperationType(String operation) {
+        return OperationType.valueOf(operation);
     }
 
     public RequestMessage(OperationType operationType, Operation requestBody) {
@@ -21,4 +26,5 @@ public class RequestMessage extends Message<Operation> {
         this.messageHeader = messageHeader;
         this.messageBody = requestBody;
     }
+
 }

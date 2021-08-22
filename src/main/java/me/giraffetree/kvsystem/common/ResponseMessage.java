@@ -10,4 +10,9 @@ public class ResponseMessage extends Message<Result> {
         return OperationType.valueOf(operation).getResponse();
     }
 
+    @Override
+    public OperationType getOperationType(String operation) {
+        return OperationType.valueOf(operation);
+    }
+
 }
