@@ -1,15 +1,15 @@
 package me.giraffetree.kvsystem.network.handler;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 import me.giraffetree.kvsystem.common.Operation;
 import me.giraffetree.kvsystem.common.RequestMessage;
 import me.giraffetree.kvsystem.common.ResponseMessage;
 import me.giraffetree.kvsystem.common.Result;
+import me.giraffetree.kvsystem.common.constant.ServerAttr;
 
 /**
  * @author GiraffeTree
@@ -27,7 +27,22 @@ public class RequestHandler extends SimpleChannelInboundHandler<RequestMessage> 
         responseMessage.setMessageHeader(request.getMessageHeader());
         responseMessage.setMessageBody(result);
 
-        ChannelFuture channelFuture = ctx.writeAndFlush(responseMessage);
+        // 设置请求/响应内容
+        ctx.channel().attr(ServerAttr.REQUEST_CONTENT.getKey()).set(request);
+        ctx.channel().attr(ServerAttr.RESPONSE_CONTENT.getKey()).set(responseMessage);
+
+        ChannelPromise channelPromise = ctx.newPromise();
+        channelPromise.addListener((GenericFutureListener) future -> {
+            if (future.isSuccess()) {
+                Long startMills = (Long) ctx.channel().attr(ServerAttr.START_TIMESTAMP.getKey()).get();
+                log.info("type:{} cost:{}ms request:{} response:{}", request.getClass().getSimpleName(), System.currentTimeMillis() - startMills, request, responseMessage);
+            } else if (future.isCancellable()) {
+                System.out.println("cancel....");
+            } else {
+                System.out.println("operationComplete... failed...");
+            }
+        });
+        ctx.writeAndFlush(responseMessage, channelPromise);
     }
 
 }

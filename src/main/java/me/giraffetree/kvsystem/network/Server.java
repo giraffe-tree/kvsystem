@@ -14,6 +14,7 @@ import me.giraffetree.kvsystem.network.codec.BasicLengthFrameDecoder;
 import me.giraffetree.kvsystem.network.codec.BasicLengthFrameEncoder;
 import me.giraffetree.kvsystem.network.codec.MessageDecoder;
 import me.giraffetree.kvsystem.network.codec.MessageEncoder;
+import me.giraffetree.kvsystem.network.handler.MetricHandler;
 import me.giraffetree.kvsystem.network.handler.RequestHandler;
 
 import java.util.concurrent.ExecutionException;
@@ -34,7 +35,7 @@ public class Server {
                 @Override
                 protected void initChannel(NioSocketChannel ch) throws Exception {
                     ChannelPipeline pipeline = ch.pipeline();
-
+                    pipeline.addLast("metric", new MetricHandler());
                     pipeline.addLast("frameDecoder", new BasicLengthFrameDecoder());
                     pipeline.addLast("frameEncoder", new BasicLengthFrameEncoder());
 
