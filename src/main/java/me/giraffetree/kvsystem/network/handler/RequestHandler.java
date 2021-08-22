@@ -31,18 +31,7 @@ public class RequestHandler extends SimpleChannelInboundHandler<RequestMessage> 
         ctx.channel().attr(ServerAttr.REQUEST_CONTENT.getKey()).set(request);
         ctx.channel().attr(ServerAttr.RESPONSE_CONTENT.getKey()).set(responseMessage);
 
-        ChannelPromise channelPromise = ctx.newPromise();
-        channelPromise.addListener((GenericFutureListener) future -> {
-            if (future.isSuccess()) {
-                Long startMills = (Long) ctx.channel().attr(ServerAttr.START_TIMESTAMP.getKey()).get();
-                log.info("type:{} cost:{}ms request:{} response:{}", request.getClass().getSimpleName(), System.currentTimeMillis() - startMills, request, responseMessage);
-            } else if (future.isCancellable()) {
-                System.out.println("cancel....");
-            } else {
-                System.out.println("operationComplete... failed...");
-            }
-        });
-        ctx.writeAndFlush(responseMessage, channelPromise);
+        ctx.writeAndFlush(responseMessage);
     }
 
 }
